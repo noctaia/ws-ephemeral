@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.1] - 2026-09-18
+
+### 🐛 Bug Fixes
+
+- *(gluetun)* Retry `PUT /v1/portforward` while gluetun answers `port forwarding
+  service not started`, which it does at pod start until the tunnel is up
+
 ## [4.0.0] - 2026-09-18
 
 Fork of [dhruvinsh/ws-ephemeral](https://github.com/dhruvinsh/ws-ephemeral)
