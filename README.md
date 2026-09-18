@@ -1,5 +1,12 @@
 # WS-EPHEMERAL
 
+> [!NOTE]
+> Fork of [dhruvinsh/ws-ephemeral](https://github.com/dhruvinsh/ws-ephemeral),
+> which is no longer maintained, with
+> [PR #27](https://github.com/dhruvinsh/ws-ephemeral/pull/27) (login through
+> the desktop client api, the website login is behind a bot wall) and gluetun
+> support on top. Built for a qBittorrent + gluetun pod.
+
 > [!WARNING]
 > Please use this tool responsibly. Excessive or inappropriate
 > usage may result in temporary suspension of your account. Due to lack of
@@ -26,10 +33,9 @@ Windscribe VPN and need to open the ports.
 
 ### Registries
 
-There are two registries available:
+Images are published to GitHub Container Registry only:
 
-- dhruvinsh/ws-ephemeral
-- ghcr.io/dhruvinsh/ws-ephemeral
+- ghcr.io/noctaia/ws-ephemeral
 
 ### Tags
 
@@ -61,7 +67,7 @@ docker run \
 -e WS_USERNAME=username \
 -e WS_TOPT=totp_token \
 -v /path/to/local/data:/cookie \
-dhruvinsh/ws-ephemeral:latest
+ghcr.io/noctaia/ws-ephemeral:latest
 ```
 
 #### Docker-compose
@@ -87,11 +93,29 @@ docker compose up -d
 | QBIT_HOST            | QBIT web address like, https://qbit.xyz.com or http://192.168.1.10               |
 | QBIT_PORT            | QBIT web port number like, 443 or 8080                                           |
 | QBIT_PRIVATE_TRACKER | get QBIT ready for private tracker by disabling dht, pex and lsd (true or false) |
+| GLUETUN_HOST         | Optional gluetun control server, e.g. http://127.0.0.1:8000 (see below)          |
 | ONESHOT              | Run and setup the code only one time so that job can be schedule externally      |
 | REQUEST_TIMEOUT      | configurable http api timeout for slow network/busy websites                     |
 
 > [!tip]
 > NOTE: for usage see [Docker Setup](#docker-setup) v2 setup guide.
+
+## Gluetun
+
+gluetun has no port forwarding code for Windscribe, so instead of hardcoding
+`FIREWALL_VPN_INPUT_PORTS` set `GLUETUN_HOST` and the new port is pushed to
+gluetun's control server (`PUT /v1/portforward`), which opens it on the VPN
+interface. That route requires authentication on gluetun's side, the simplest
+setup when both share a network namespace is to keep the control server
+local and let it through:
+
+```yaml
+HTTP_CONTROL_SERVER_ADDRESS: 127.0.0.1:8000
+HTTP_CONTROL_SERVER_AUTH_DEFAULT_ROLE: '{"auth":"none"}'
+```
+
+or grant only that route in `/gluetun/auth/config.toml`, see the
+[gluetun wiki](https://github.com/qdm12/gluetun-wiki/blob/main/setup/advanced/control-server.md#authentication).
 
 > [!tip]
 > `WS_COOKIE_PATH` should point to a persistent volume. The session is cached

@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [4.0.0] - 2026-09-18
+
+Fork of [dhruvinsh/ws-ephemeral](https://github.com/dhruvinsh/ws-ephemeral)
+with [PR #27](https://github.com/dhruvinsh/ws-ephemeral/pull/27) merged.
+Images are published to `ghcr.io/noctaia/ws-ephemeral` only.
 
 ### 🐛 Bug Fixes
 
@@ -16,6 +20,9 @@ All notable changes to this project will be documented in this file.
 - *(ws)* Solve the login slider captcha locally, no browser or external service
 - *(ws)* Cache the api session so the login is only repeated when rejected
 - *(env)* `WS_AUTH_HASH` to reuse an existing api session hash
+- *(gluetun)* `GLUETUN_HOST`: push the new port to gluetun's control server
+  (`PUT /v1/portforward`) so it is opened on the VPN interface without a
+  hardcoded `FIREWALL_VPN_INPUT_PORTS`
 
 ### ⚙️ Miscellaneous Tasks
 

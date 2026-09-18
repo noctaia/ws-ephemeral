@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ws-ephemeral"
-version = "2.1.0"
+version = "4.0.0"
 description = "request matching ephemeral port"
 authors = ["Dhruvin Shah <dhruvin3@gmail.com>"]
 
@@ -21,6 +21,7 @@ black = ">=22.6.0"
 pylint = ">=2.14.5"
 isort = ">=5.10.1"
 types-pyyaml = "^6.0.12.9"
+pytest = ">=8.0"
 
 [tool.pylint.basic]
 good-names = ["ws"]

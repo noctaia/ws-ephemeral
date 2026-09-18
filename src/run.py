@@ -8,6 +8,7 @@ import time
 import schedule
 
 import config
+from lib.gluetun import GluetunManager
 from lib.qbit import QbitManager
 from logger import setup_logging
 from monitor import HEARTBEAT, monitor
@@ -28,6 +29,7 @@ def main() -> None:
     - login to ws
     - setup new matching ports
     - setup qbit
+    - tell gluetun to open the port on the VPN interface
     """
     if not HEARTBEAT:
         msg = (
@@ -67,6 +69,10 @@ def main() -> None:
 
     if config.QBIT_PRIVATE_TRACKER:
         qbit.setup_private_tracker()
+
+    if config.GLUETUN_HOST:
+        if not GluetunManager(config.GLUETUN_HOST, config.REQUEST_TIMEOUT).set_port(port):
+            logger.error("gluetun did not report port %s as forwarded", port)
     logger.info("Port setup completed..")
 
 

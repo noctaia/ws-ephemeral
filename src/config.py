@@ -71,6 +71,10 @@ if QBIT_USERNAME == "default123!!" or QBIT_PASSWORD == "default123!!":
 _QBIT_PRIVATE_TRACKER: str = os.getenv("QBIT_PRIVATE_TRACKER", "false")
 QBIT_PRIVATE_TRACKER: bool = True if _QBIT_PRIVATE_TRACKER.lower() == "true" else False
 
+# gluetun control server, e.g. http://127.0.0.1:8000 when sharing its network
+# namespace. Empty disables the gluetun step.
+GLUETUN_HOST: str = os.getenv("GLUETUN_HOST", "")
+
 
 # wait before setting the ephemeral ports
 try:
