@@ -38,8 +38,21 @@ class QbitSettings:
 
 
 @dataclass(frozen=True, slots=True)
+class GluetunSettings:
+    """Everything needed to talk to the gluetun control server."""
+
+    host: str
+    # None disables the timeout
+    timeout: float | None
+
+
+@dataclass(frozen=True, slots=True)
 class Settings:
-    """All settings of a single run, `qbit` is None when qBittorrent isn't set up."""
+    """All settings of a single run.
+
+    `qbit` is None when qBittorrent isn't set up, `gluetun` when gluetun isn't.
+    """
 
     windscribe: WindscribeSettings
     qbit: QbitSettings | None
+    gluetun: GluetunSettings | None = None

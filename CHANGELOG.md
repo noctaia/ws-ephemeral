@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] - noctaia fork
+
+### 🚀 Features
+
+- *(gluetun)* Push the new port to the gluetun control server (`GLUETUN_HOST`), retrying while the tunnel is not up
+- *(daemon)* Retry a failed run with a growing delay, 5 minutes doubled up to 6 hours (`RETRY_DELAY`, 0 turns it off)
+
+### 🚜 Refactor
+
+- qBittorrent and gluetun are handed the port independently, one failing no longer skips the other
+
 ## [4.0.0] - 2026-10-24
 
 ### ⚠️ Deprecations

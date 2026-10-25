@@ -7,13 +7,20 @@ environment variables are the same as they always were.
 import functools
 import logging
 from dataclasses import dataclass, field
+from datetime import timedelta
 from importlib.metadata import version as package_version
 from pathlib import Path
 from typing import Annotated
 
 import typer
 
-from .config import COOKIE_FILE_NAME, QbitSettings, Settings, WindscribeSettings
+from .config import (
+    COOKIE_FILE_NAME,
+    GluetunSettings,
+    QbitSettings,
+    Settings,
+    WindscribeSettings,
+)
 from .job import run_job
 from .log import setup_logging
 from .scheduler import build_scheduler, serve
@@ -43,6 +50,7 @@ class _Options:
     qbit_username: str | None
     qbit_password: str | None = field(repr=False)
     qbit_private_tracker: bool
+    gluetun_host: str | None
 
 
 def _show_version(value: bool) -> None:
@@ -108,6 +116,14 @@ def main(
             "and lsd.",
         ),
     ] = False,
+    gluetun_host: Annotated[
+        str | None,
+        typer.Option(
+            envvar="GLUETUN_HOST",
+            help="Gluetun control server address, like http://127.0.0.1:8000. The "
+            "new port is also pushed there, unset to skip gluetun.",
+        ),
+    ] = None,
     debug: Annotated[
         bool,
         typer.Option("--debug/--no-debug", envvar="WS_DEBUG", help="Debug logging."),
@@ -139,6 +155,7 @@ def main(
         qbit_username=qbit_username,
         qbit_password=qbit_password,
         qbit_private_tracker=qbit_private_tracker,
+        gluetun_host=gluetun_host,
     )
 
 
@@ -163,15 +180,23 @@ def _settings(ctx: typer.Context) -> Settings:
             private_tracker=opts.qbit_private_tracker,
         )
 
+    timeout = None if opts.request_timeout == -1 else opts.request_timeout
+    gluetun = (
+        GluetunSettings(host=opts.gluetun_host, timeout=timeout)
+        if opts.gluetun_host
+        else None
+    )
+
     return Settings(
         windscribe=WindscribeSettings(
             username=opts.ws_username,
             password=opts.ws_password,
             totp=opts.ws_totp,
             cookie_file=opts.cookie_path / COOKIE_FILE_NAME,
-            timeout=None if opts.request_timeout == -1 else opts.request_timeout,
+            timeout=timeout,
         ),
         qbit=qbit,
+        gluetun=gluetun,
     )
 
 
@@ -216,6 +241,15 @@ def daemon(
             help="Also run once right at startup.",
         ),
     ] = True,
+    retry_delay: Annotated[
+        int,
+        typer.Option(
+            envvar="RETRY_DELAY",
+            min=0,
+            help="Minutes to wait before retrying a failed run, doubled after each "
+            "failure up to 6 hours. 0 turns the retries off.",
+        ),
+    ] = 5,
     oneshot: Annotated[
         bool,
         typer.Option(
@@ -241,6 +275,7 @@ def daemon(
             at=at,
             cron=cron,
             run_on_start=run_on_start,
+            retry_delay=timedelta(minutes=retry_delay) if retry_delay else None,
         )
     except ValueError as exc:
         raise typer.BadParameter(str(exc)) from exc

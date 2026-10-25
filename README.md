@@ -1,5 +1,11 @@
 # WS-EPHEMERAL
 
+> [!NOTE]
+> **noctaia fork.** Upstream v4 plus two additions: the new port is also pushed to
+> the [gluetun](https://github.com/qdm12/gluetun) control server (`GLUETUN_HOST`), and
+> a failed run is retried with a growing delay (`RETRY_DELAY`) instead of waiting for
+> the next scheduled run. Everything else is upstream.
+
 > [!ATTENTION]
 > **Disclosures:** AI and AI tooling has been used for this project revival purpose. But I (human) was in the loop to make sure it is achieving the intended goal (at least for me).
 
@@ -80,6 +86,8 @@ docker compose up -d
 | QBIT_HOST            | QBIT web address like, https://qbit.xyz.com or http://192.168.1.10               |
 | QBIT_PORT            | QBIT web port number like, 443 or 8080                                           |
 | QBIT_PRIVATE_TRACKER | get QBIT ready for private tracker by disabling dht, pex and lsd (true or false) |
+| GLUETUN_HOST         | Gluetun control server like `http://127.0.0.1:8000`, the port is pushed to it as well. Needs gluetun with `PUT /v1/portforward` and no auth on that route |
+| RETRY_DELAY          | Minutes before retrying a failed run of the `daemon`, doubled after each failure up to 6 hours, default 5, 0 turns it off |
 | DAYS                 | Days between two runs of the `daemon` command, default 6                         |
 | TIME                 | Time of the day to run at, HH:MM in the timezone set by `TZ`, default 02:00      |
 | CRON                 | A 5 field cron expression like `0 2 * * 1`, replaces `DAYS` and `TIME`           |
@@ -165,7 +173,7 @@ or concerns, please open an issue here.
   - [ ] Random job time for cron job #15
 - [ ] Allow to run custom script (for now Bash script only) #12
 - [ ] Support for deluge
-- [ ] Gluetun support [#2392](https://github.com/qdm12/gluetun/pull/2392)
+- [x] Gluetun support (this fork, via the control server)
 
 ## License
 

@@ -3,6 +3,7 @@
 import logging
 
 from .config import Settings
+from .gluetun import GluetunManager
 from .qbit import QbitManager
 from .windscribe import Windscribe, WindscribeError
 
@@ -16,7 +17,7 @@ def rotate_port(settings: Settings) -> int:
     - make sure qBittorrent is reachable, so that we never rotate a port that we
       then can't hand over
     - login to ws and setup new matching port
-    - setup qbit
+    - setup qbit and tell gluetun to open the port on the VPN interface
 
     Args:
         settings (Settings): The settings of the run.
@@ -49,18 +50,37 @@ def rotate_port(settings: Settings) -> int:
         port = client.setup()
     logger.info("New ephemeral port: %s", port)
 
-    if qbit is None or qbit_settings is None:
+    if (qbit is None or qbit_settings is None) and settings.gluetun is None:
         logger.warning(
             "qBittorrent is not set up, read the latest doc: "
             "https://github.com/dhruvinsh/ws-ephemeral#readme"
         )
-        return port
 
-    if not qbit.set_listen_port(port):
-        logger.warning("qBittorrent did not report the new port %s", port)
+    # the two hand overs are independent, one failing must not skip the other
+    errors: list[Exception] = []
 
-    if qbit_settings.private_tracker and not qbit.setup_private_tracker():
-        logger.warning("qBittorrent still has dht, pex or lsd enabled")
+    if qbit is not None and qbit_settings is not None:
+        try:
+            if not qbit.set_listen_port(port):
+                logger.warning("qBittorrent did not report the new port %s", port)
+
+            if qbit_settings.private_tracker and not qbit.setup_private_tracker():
+                logger.warning("qBittorrent still has dht, pex or lsd enabled")
+        except Exception as exc:
+            logger.exception("Could not hand the port %s to qBittorrent", port)
+            errors.append(exc)
+
+    if settings.gluetun is not None:
+        try:
+            gluetun = GluetunManager(settings.gluetun.host, settings.gluetun.timeout)
+            if not gluetun.set_port(port):
+                logger.warning("gluetun did not report the new port %s", port)
+        except Exception as exc:
+            logger.exception("Could not hand the port %s to gluetun", port)
+            errors.append(exc)
+
+    if errors:
+        raise errors[0]
 
     return port
 
